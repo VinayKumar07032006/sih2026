@@ -24,6 +24,7 @@ const NAV_ITEMS = [
   { path: '/infrastructure', label: 'Infrastructure', icon: ShieldAlert },
   { path: '/safety-incidents', label: 'Safety & Incidents', icon: Siren },
   { path: '/bus-fleet', label: 'Bus Fleet', icon: Bus },
+  { path: '/prediction', label: 'AI Prediction', icon: Cpu },
   { path: '/analytics-reports', label: 'Analytics & Reports', icon: BarChart3 }
 ];
 
