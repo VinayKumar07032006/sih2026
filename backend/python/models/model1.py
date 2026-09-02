@@ -6,9 +6,12 @@ from ultralytics import YOLO
 # --------------------------------------------------
 # Paths & Config
 # --------------------------------------------------
+import tempfile
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 PYTHON_DIR = os.path.dirname(BASE_DIR)
-OUTPUT_DIR = os.path.join(PYTHON_DIR, "outputs")
+TEMP_BASE = tempfile.gettempdir()
+OUTPUT_DIR = os.path.join(TEMP_BASE, "urbansense_outputs")
 
 MODEL_URL = "https://github.com/oracl4/RoadDamageDetection/raw/refs/heads/main/models/YOLOv8_Small_RDD.pt"
 MODEL_PATH = os.path.join(BASE_DIR, "YOLOv8_Small_RDD.pt")

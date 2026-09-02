@@ -16,9 +16,12 @@ from models.model3 import process_traffic_image, process_traffic_video
 # --------------------------------------------------
 # Directories
 # --------------------------------------------------
+import tempfile
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_DIR = os.path.join(BASE_DIR, "uploads")
-OUTPUT_DIR = os.path.join(BASE_DIR, "outputs")
+TEMP_BASE = tempfile.gettempdir()
+UPLOAD_DIR = os.path.join(TEMP_BASE, "urbansense_uploads")
+OUTPUT_DIR = os.path.join(TEMP_BASE, "urbansense_outputs")
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -31,16 +34,16 @@ if os.path.exists(env_path):
             line = line.strip()
             if '=' in line and not line.startswith('#'):
                 k, v = line.split('=', 1)
-                os.environ[k] = v
+                os.environ[k.strip()] = v.strip()
 
 BASEMAP_TILE_URL = os.environ.get("BASEMAP_TILE_URL", "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png")
 
 # --------------------------------------------------
-# MongoDB Local Connection
+# MongoDB Connection
 # --------------------------------------------------
-MONGO_URI = "mongodb://localhost:27017/"
-DB_NAME = "urban_sense_db"
-COLLECTION_NAME = "predictions"
+MONGO_URI = os.environ.get("mongodb")
+DB_NAME = os.environ.get("mongodb_db_name")
+COLLECTION_NAME = os.environ.get("mongodb_collection_name")
 
 mongo_connected = False
 db = None
