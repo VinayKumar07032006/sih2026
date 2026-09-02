@@ -34,7 +34,7 @@ const createCustomIcon = (color, symbol) => {
 };
 
 export const SafetyIncidents = () => {
-  const { incidents, acknowledgeIncident, escalateIncident, showToast } = useApp();
+  const { incidents, acknowledgeIncident, escalateIncident, showToast, mapConfig, cityConfig } = useApp();
   const [selectedIncident, setSelectedIncident] = useState(null);
   const [vehicleTrackingView, setVehicleTrackingView] = useState(null);
 
@@ -273,8 +273,8 @@ export const SafetyIncidents = () => {
                   style={{ width: '100%', height: '100%' }}
                 >
                   <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                    attribution="&copy; OpenStreetMap"
+                    url={mapConfig.basemapUrl}
+                    attribution="&copy; OpenStreetMap & CartoDB"
                   />
 
                   {/* Render Trajectory Polyline */}

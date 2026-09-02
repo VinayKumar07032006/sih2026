@@ -58,6 +58,7 @@ const CATEGORY_COLORS = ['#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#10b981'];
 export const Overview = () => {
   const { 
     cityConfig, 
+    mapConfig,
     buses, 
     events, 
     defects, 
@@ -219,7 +220,7 @@ export const Overview = () => {
               zoomControl={false}
             >
               <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                url={mapConfig.basemapUrl}
                 attribution="&copy; OpenStreetMap & CartoDB"
               />
 

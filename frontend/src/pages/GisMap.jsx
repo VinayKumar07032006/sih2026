@@ -43,7 +43,8 @@ export const GisMap = () => {
     selectedEvent, 
     setSelectedEvent,
     mapFilters,
-    setMapFilters 
+    setMapFilters,
+    mapConfig
   } = useApp();
 
   const [activeLayers, setActiveLayers] = useState({
@@ -204,7 +205,7 @@ export const GisMap = () => {
           style={{ width: '100%', height: '100%' }}
         >
           <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+            url={mapConfig.basemapUrl}
             attribution="&copy; OpenStreetMap & CartoDB"
           />
 

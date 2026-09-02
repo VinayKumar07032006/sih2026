@@ -15,6 +15,65 @@ export const AppProvider = ({ children }) => {
   const [infrastructure, setInfrastructure] = useState(MOCK_INFRASTRUCTURE);
   const [incidents, setIncidents] = useState(MOCK_INCIDENTS);
   
+  const [mapConfig, setMapConfig] = useState({ basemapUrl: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" });
+
+  const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/config`);
+        const json = await res.json();
+        if (json.basemap_url) {
+          setMapConfig({ basemapUrl: json.basemap_url });
+        }
+      } catch (err) {
+        console.error("Failed to fetch map config", err);
+      }
+    };
+    fetchConfig();
+
+    const fetchPredictions = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/predictions`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          const apiEvents = json.data.map((item, idx) => ({
+            id: item._id || `API_EVT_${idx}`,
+            type: "POTHOLE", 
+            location: "Live Detection Hotspot",
+            latitude: item.lang || 28.6139,
+            longitude: item.long || 77.2090,
+            severity: item.no_of_predicted > 0 ? "CRITICAL" : "LOW",
+            timestamp: item.created_at || new Date().toISOString(),
+            confidence: 0.92,
+            busId: "USER_UPLOAD",
+            description: `User-uploaded media prediction. Detected objects: ${item.no_of_predicted}`,
+            evidenceImage: "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=400"
+          }));
+
+          const apiDefects = json.data.map((item, idx) => ({
+            id: item._id || `API_DEF_${idx}`,
+            type: "Prediction",
+            location: "Mapped Location",
+            latitude: item.lang || 28.6139,
+            longitude: item.long || 77.2090,
+            severity: item.no_of_predicted > 0 ? "HIGH" : "LOW",
+            detectedAt: item.created_at || new Date().toISOString(),
+            status: "Detected",
+            description: `Predicted items: ${item.no_of_predicted}`
+          }));
+          
+          setEvents([...apiEvents, ...MOCK_EVENTS]);
+          setDefects([...apiDefects, ...MOCK_DEFECTS]);
+        }
+      } catch (err) {
+        console.error("Failed to fetch predictions", err);
+      }
+    };
+    fetchPredictions();
+  }, []);
+  
   // Selection drawers / modals
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [selectedBus, setSelectedBus] = useState(null);
@@ -121,6 +180,7 @@ export const AppProvider = ({ children }) => {
   return (
     <AppContext.Provider value={{
       cityConfig: CITY_CONFIG,
+      mapConfig,
       buses,
       events,
       defects,
