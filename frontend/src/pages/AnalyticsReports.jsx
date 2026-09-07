@@ -2,33 +2,19 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   BarChart3, 
-  Sparkles, 
   Map, 
-  Clock, 
   Download, 
   FileText, 
-  Filter, 
   Calendar, 
-  CheckCircle2, 
   Building2, 
   ArrowRight,
-  TrendingUp
+  TrendingUp,
+  Clock,
+  CheckCircle2
 } from 'lucide-react';
-import { 
-  ResponsiveContainer, 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  CartesianGrid, 
-  LineChart, 
-  Line 
-} from 'recharts';
 import { 
   ORIGIN_DESTINATION_MATRIX, 
   ACTIONABLE_URBAN_INSIGHTS, 
-  BUS_CONTRIBUTION_LEADERBOARD,
   REPORT_TYPES
 } from '../data/analytics';
 import { ROUTE_PERFORMANCE } from '../data/traffic';
@@ -43,30 +29,32 @@ export const AnalyticsReports = () => {
     setIsExporting(true);
     setTimeout(() => {
       setIsExporting(false);
-      showToast(`Generated & Downloaded Municipal ${format} Report successfully!`, 'success');
-    }, 1200);
+      showToast(`Generated & Downloaded Municipal ${format} Report successfully.`, 'success');
+    }, 1000);
   };
 
   return (
-    <div className="space-y-8 pb-16">
+    <div className="space-y-6 pb-16 max-w-7xl mx-auto">
       {/* 1. TOP HEADER & TIME FILTER BAR */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-xs">
         <div>
-          <h2 className="text-base font-bold text-white flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-blue-400" />
-            Centralized Urban Intelligence & Municipal Analytics
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-blue-600" />
+            Mobility Analytics & Municipal Reports
           </h2>
-          <p className="text-xs text-slate-400">Aggregated sensing telemetry from public transport mobile units</p>
+          <p className="text-xs text-slate-500 mt-1">
+            Aggregated traffic intelligence and defect distribution from transit mobile sensing units.
+          </p>
         </div>
 
-        <div className="flex items-center space-x-2 bg-slate-950 p-1.5 rounded border border-slate-800 text-xs">
-          <Calendar className="w-3.5 h-3.5 text-blue-400 ml-1" />
-          {['TODAY', '7_DAYS', '30_DAYS', 'CUSTOM'].map(t => (
+        <div className="flex items-center gap-1.5 bg-slate-100/80 p-1.5 rounded-xl border border-slate-200 text-xs">
+          <Calendar className="w-3.5 h-3.5 text-slate-400 ml-1.5" />
+          {['TODAY', '7_DAYS', '30_DAYS', 'ALL_TIME'].map(t => (
             <button
               key={t}
               onClick={() => setTimeFilter(t)}
-              className={`px-3 py-1 rounded font-bold transition ${
-                timeFilter === t ? 'bg-blue-600 text-white shadow' : 'text-slate-400 hover:text-slate-200'
+              className={`px-3 py-1.5 rounded-lg font-semibold transition ${
+                timeFilter === t ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-800'
               }`}
             >
               {t.replace('_', ' ')}
@@ -75,74 +63,69 @@ export const AnalyticsReports = () => {
         </div>
       </div>
 
-      {/* 2. ACTIONABLE URBAN INSIGHTS (User requested title update) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div className="flex items-center space-x-2">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            <span className="text-sm font-bold text-white uppercase tracking-wider">
-              Actionable Urban Insights
-            </span>
+      {/* 2. ACTIONABLE MUNICIPAL INSIGHTS */}
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Key Findings & Corrective Recommendations</h3>
+            <p className="text-xs text-slate-500">Action items identified from spatial pattern telemetry</p>
           </div>
-          <span className="text-xs text-amber-400 bg-amber-950 px-2 py-0.5 rounded border border-amber-800 font-bold">
-            AUTOMATED REASONING
+          <span className="text-xs text-slate-600 font-semibold bg-slate-100 px-3 py-1 rounded-xl">
+            {ACTIONABLE_URBAN_INSIGHTS.length} Active Findings
           </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {ACTIONABLE_URBAN_INSIGHTS.map(insight => (
-            <div key={insight.id} className="bg-slate-950 border border-slate-800 rounded-lg p-4 space-y-2 hover:border-slate-700 transition">
+            <div key={insight.id} className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-4 space-y-2 hover:bg-slate-50 hover:border-slate-300 transition">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-100">{insight.title}</span>
-                <span className={`text-[9px] px-2 py-0.5 rounded font-bold ${
-                  insight.urgency === 'CRITICAL' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-amber-950 text-amber-400 border border-amber-800'
+                <span className="text-xs font-bold text-slate-900">{insight.title}</span>
+                <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${
+                  insight.urgency === 'CRITICAL' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'bg-amber-50 text-amber-800 border border-amber-200'
                 }`}>
                   {insight.urgency}
                 </span>
               </div>
-              <p className="text-xs text-slate-400 leading-relaxed">{insight.summary}</p>
-              <div className="pt-2 border-t border-slate-800/80 text-[11px] font-semibold text-emerald-400 flex items-center gap-1.5">
-                <ArrowRight className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
-                <span>Recommendation: {insight.recommendedAction}</span>
+              <p className="text-xs text-slate-600 leading-relaxed">{insight.summary}</p>
+              <div className="pt-2 border-t border-slate-200/60 text-xs font-semibold text-emerald-700 flex items-center gap-1.5">
+                <ArrowRight className="w-3.5 h-3.5 shrink-0 text-emerald-600" />
+                <span>Action: {insight.recommendedAction}</span>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* 3. ORIGIN-DESTINATION (OD) MATRIX VISUALIZER (PS Requirement) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div className="flex items-center space-x-2">
-            <Map className="w-5 h-5 text-cyan-400" />
-            <span className="text-sm font-bold text-white uppercase tracking-wider">
-              Origin-Destination (OD) Traffic Flow Matrix
-            </span>
+      {/* 3. ORIGIN-DESTINATION (OD) MATRIX */}
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Origin-Destination (OD) Traffic Flow Matrix</h3>
+            <p className="text-xs text-slate-500">Peak hour trip volume distribution across municipal sectors (Vehicles / Hr)</p>
           </div>
-          <span className="text-xs text-slate-400">Peak Hour Trip Distribution (Vehicles / Hr)</span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-center text-xs text-slate-300 border border-slate-800">
-            <thead className="bg-slate-950 text-slate-400 uppercase text-[10px]">
+          <table className="w-full text-center text-xs text-slate-700 border border-slate-200 rounded-xl overflow-hidden">
+            <thead className="bg-slate-50 text-slate-700 uppercase text-[10px]">
               <tr>
-                <th className="p-3 text-left border border-slate-800">Origin \ Destination</th>
+                <th className="p-3 text-left border border-slate-200 font-bold">Origin \ Destination</th>
                 {ORIGIN_DESTINATION_MATRIX.zones.map(z => (
-                  <th key={z} className="p-3 border border-slate-800">{z.split(' ')[1]}</th>
+                  <th key={z} className="p-3 border border-slate-200 font-bold">{z.split(' ')[1]}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {ORIGIN_DESTINATION_MATRIX.matrix.map((row, rIdx) => (
-                <tr key={rIdx} className="hover:bg-slate-800/40">
-                  <td className="p-3 text-left font-bold text-slate-200 bg-slate-950 border border-slate-800">
+                <tr key={rIdx} className="hover:bg-slate-50/80">
+                  <td className="p-3 text-left font-bold text-slate-900 bg-slate-50 border border-slate-200">
                     {ORIGIN_DESTINATION_MATRIX.zones[rIdx]}
                   </td>
                   {row.map((val, cIdx) => {
-                    let bg = "bg-slate-900";
-                    if (val > 400) bg = "bg-rose-950/80 text-rose-300 font-bold border border-rose-800";
-                    else if (val > 250) bg = "bg-amber-950/60 text-amber-300 font-bold border border-amber-800/60";
-                    else if (val > 0) bg = "bg-slate-950 text-slate-300 border border-slate-800";
+                    let bg = "bg-white";
+                    if (val > 400) bg = "bg-rose-50 text-rose-700 font-bold border border-rose-200";
+                    else if (val > 250) bg = "bg-amber-50 text-amber-800 font-bold border border-amber-200";
+                    else if (val > 0) bg = "bg-slate-50/60 text-slate-700 border border-slate-200";
 
                     return (
                       <td key={cIdx} className={`p-3 font-mono ${bg}`}>
@@ -158,52 +141,54 @@ export const AnalyticsReports = () => {
 
         {/* Top Traffic Corridors */}
         <div className="pt-2">
-          <div className="text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">Top High-Density Traffic Corridors</div>
+          <div className="text-xs font-semibold text-slate-700 mb-2">High-Density Corridors</div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {ORIGIN_DESTINATION_MATRIX.topCorridors.map(cor => (
-              <div key={cor.rank} className="bg-slate-950 p-3 rounded border border-slate-800 text-xs space-y-1">
-                <div className="font-bold text-blue-400">Rank #{cor.rank}: {cor.corridor}</div>
-                <div className="text-slate-300 font-mono">{cor.volume}</div>
-                <div className="text-[10px] text-amber-400 font-semibold">{cor.flowRate}</div>
+              <div key={cor.rank} className="bg-slate-50/70 p-3.5 rounded-xl border border-slate-200/80 text-xs space-y-1">
+                <div className="font-bold text-blue-700">#{cor.rank} {cor.corridor}</div>
+                <div className="text-slate-800 font-semibold font-mono">{cor.volume}</div>
+                <div className="text-[11px] text-slate-500">{cor.flowRate}</div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* 4. BUS CONTRIBUTION LEADERBOARD */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div className="flex items-center space-x-2">
-            <Building2 className="w-5 h-5 text-purple-400" />
-            <span className="text-sm font-bold text-white uppercase tracking-wider">
-              Fleet Sensing Contribution Leaderboard
-            </span>
+      {/* 4. ROUTE DELAY ANALYTICS */}
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Transit Fleet Route Delays</h3>
+            <p className="text-xs text-slate-500">Real-time schedule variance across major routes</p>
           </div>
-          <span className="text-xs text-slate-400">Top 5 Edge AI Sensing Units</span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] border-b border-slate-800">
+          <table className="w-full text-left text-xs text-slate-700">
+            <thead className="bg-slate-50/80 text-slate-500 uppercase text-[10px] border-b border-slate-200">
               <tr>
-                <th className="p-3">Bus Unit</th>
-                <th className="p-3">Route</th>
-                <th className="p-3">Total Events Logged</th>
-                <th className="p-3">Defects Detected</th>
-                <th className="p-3">Incidents Logged</th>
-                <th className="p-3 text-right">Edge Uptime</th>
+                <th className="py-2.5 px-3">Route</th>
+                <th className="py-2.5 px-3">Standard Time</th>
+                <th className="py-2.5 px-3">Current Observed</th>
+                <th className="py-2.5 px-3">Delay Variance</th>
+                <th className="py-2.5 px-3 text-right">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {BUS_CONTRIBUTION_LEADERBOARD.map(bus => (
-                <tr key={bus.busId} className="hover:bg-slate-800/40 transition">
-                  <td className="p-3 font-mono font-bold text-blue-400">{bus.busId}</td>
-                  <td className="p-3 text-slate-200">{bus.route}</td>
-                  <td className="p-3 font-mono font-bold text-purple-300">{bus.eventsLogged}</td>
-                  <td className="p-3 font-mono text-amber-400">{bus.defectsCount}</td>
-                  <td className="p-3 font-mono text-rose-400">{bus.incidentsLogged}</td>
-                  <td className="p-3 font-mono font-bold text-emerald-400 text-right">{bus.uptime}</td>
+            <tbody className="divide-y divide-slate-100">
+              {ROUTE_PERFORMANCE.map((route, idx) => (
+                <tr key={idx} className="hover:bg-slate-50/80">
+                  <td className="py-3 px-3 font-semibold text-slate-900">{route.route}</td>
+                  <td className="py-3 px-3 text-slate-500 font-mono">{route.normalTime}</td>
+                  <td className="py-3 px-3 text-slate-800 font-mono font-semibold">{route.currentTime}</td>
+                  <td className="py-3 px-3 font-mono font-bold text-rose-600">{route.delay}</td>
+                  <td className="py-3 px-3 text-right">
+                    <span className={`px-2 py-0.5 rounded-md font-bold text-[10px] ${
+                      route.status === 'Delayed' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                      'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    }`}>
+                      {route.status}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -211,16 +196,13 @@ export const AnalyticsReports = () => {
         </div>
       </div>
 
-      {/* 5. MUNICIPAL REPORT GENERATOR & MOCK EXPORT TOOL (Merged from page 9) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-lg space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div className="flex items-center space-x-2">
-            <FileText className="w-5 h-5 text-emerald-400" />
-            <span className="text-sm font-bold text-white uppercase tracking-wider">
-              Municipal Report Generator & Data Export
-            </span>
+      {/* 5. MUNICIPAL REPORT GENERATOR & EXPORT TOOL */}
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Official Municipal Report Export</h3>
+            <p className="text-xs text-slate-500">Generate certified PDF executive briefings or export raw CSV data</p>
           </div>
-          <span className="text-xs text-slate-400">Official Municipal PDF / CSV Documents</span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -228,43 +210,45 @@ export const AnalyticsReports = () => {
             <div 
               key={rep.id}
               onClick={() => setSelectedReport(rep.id)}
-              className={`p-4 rounded-lg border cursor-pointer transition flex flex-col justify-between space-y-2 ${
+              className={`p-4 rounded-xl border cursor-pointer transition flex flex-col justify-between space-y-2.5 ${
                 selectedReport === rep.id 
-                  ? 'bg-blue-950/80 border-blue-500 shadow-md' 
-                  : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+                  ? 'bg-blue-50/70 border-blue-500 shadow-xs' 
+                  : 'bg-slate-50/50 border-slate-200 hover:border-slate-300'
               }`}
             >
               <div>
-                <div className="font-bold text-xs text-white">{rep.title}</div>
-                <p className="text-[11px] text-slate-400 mt-1">{rep.desc}</p>
+                <div className="font-bold text-xs text-slate-900">{rep.title}</div>
+                <p className="text-[11px] text-slate-500 mt-1">{rep.desc}</p>
               </div>
-              <div className="text-[10px] text-blue-400 font-semibold pt-2 border-t border-slate-800/80">
-                {selectedReport === rep.id ? '✓ Selected' : 'Click to select'}
+              <div className="text-[11px] text-blue-600 font-semibold pt-2 border-t border-slate-200/60">
+                {selectedReport === rep.id ? '✓ Selected for export' : 'Click to select'}
               </div>
             </div>
           ))}
         </div>
 
-        {/* Generate Action Buttons */}
-        <div className="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-4">
-          <div className="text-xs text-slate-400">
-            Selected Report: <span className="font-bold text-white">{REPORT_TYPES.find(r => r.id === selectedReport)?.title}</span>
+        {/* Action Buttons */}
+        <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="text-xs text-slate-600">
+            Selected: <span className="font-bold text-slate-900">{REPORT_TYPES.find(r => r.id === selectedReport)?.title}</span>
           </div>
 
-          <div className="flex space-x-3">
+          <div className="flex items-center space-x-3 w-full sm:w-auto">
             <button
               onClick={() => handleGenerateReport('PDF')}
               disabled={isExporting}
-              className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-4 py-2 rounded text-xs flex items-center gap-1.5 transition disabled:opacity-50"
+              className="flex-1 sm:flex-initial bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-xs disabled:opacity-50"
             >
-              <Download className="w-4 h-4" /> Export Official PDF
+              <Download className="w-3.5 h-3.5" />
+              <span>Export PDF Briefing</span>
             </button>
             <button
               onClick={() => handleGenerateReport('CSV')}
               disabled={isExporting}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded text-xs flex items-center gap-1.5 transition disabled:opacity-50"
+              className="flex-1 sm:flex-initial bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold px-4 py-2.5 rounded-xl text-xs flex items-center justify-center gap-1.5 transition shadow-xs disabled:opacity-50"
             >
-              <Download className="w-4 h-4" /> Export Raw CSV Dataset
+              <Download className="w-3.5 h-3.5" />
+              <span>Export Raw CSV</span>
             </button>
           </div>
         </div>

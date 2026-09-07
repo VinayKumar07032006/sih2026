@@ -171,15 +171,15 @@ export const MOCK_EVENTS = [
 ];
 
 export const CATEGORY_COLORS = {
-  ROAD_DEFECT: "text-amber-600 bg-amber-50 border-amber-200",
-  SAFETY_INCIDENT: "text-rose-600 bg-rose-50 border-rose-200",
-  INFRASTRUCTURE: "text-purple-600 bg-purple-50 border-purple-200",
-  TRAFFIC: "text-blue-600 bg-blue-50 border-blue-200"
+  ROAD_DEFECT: "text-amber-700 bg-amber-50 border border-amber-200",
+  SAFETY_INCIDENT: "text-rose-700 bg-rose-50 border border-rose-200",
+  INFRASTRUCTURE: "text-purple-700 bg-purple-50 border border-purple-200",
+  TRAFFIC: "text-blue-700 bg-blue-50 border border-blue-200"
 };
 
 export const SEVERITY_BADGES = {
-  CRITICAL: "bg-red-600 text-white font-semibold px-2 py-0.5 rounded text-xs animate-pulse",
-  HIGH: "bg-amber-500 text-white font-semibold px-2 py-0.5 rounded text-xs",
-  MEDIUM: "bg-yellow-500 text-slate-900 font-semibold px-2 py-0.5 rounded text-xs",
-  LOW: "bg-slate-200 text-slate-700 font-medium px-2 py-0.5 rounded text-xs"
+  CRITICAL: "bg-red-100 text-red-700 border border-red-200 font-semibold px-2 py-0.5 rounded text-xs animate-pulse",
+  HIGH: "bg-amber-100 text-amber-800 border border-amber-200 font-semibold px-2 py-0.5 rounded text-xs",
+  MEDIUM: "bg-yellow-100 text-yellow-800 border border-yellow-200 font-semibold px-2 py-0.5 rounded text-xs",
+  LOW: "bg-slate-100 text-slate-700 border border-slate-200 font-medium px-2 py-0.5 rounded text-xs"
 };

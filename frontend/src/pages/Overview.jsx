@@ -1,7 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext';
 import { Link } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { 
   ResponsiveContainer, 
@@ -12,39 +12,28 @@ import {
   Tooltip, 
   CartesianGrid, 
   BarChart, 
-  Bar, 
-  PieChart, 
-  Pie, 
-  Cell 
+  Bar
 } from 'recharts';
 import { 
   Bus, 
-  Zap, 
   AlertTriangle, 
   Car, 
-  Siren, 
   ShieldAlert, 
   ArrowRight, 
-  Cpu, 
-  HardDrive, 
-  CheckCircle2, 
-  Clock, 
-  Layers, 
-  Eye, 
-  SlidersHorizontal,
-  ChevronRight,
-  Sparkles
+  Sparkles,
+  CheckCircle2,
+  Clock,
+  ArrowUpRight
 } from 'lucide-react';
 import { HOURLY_TRAFFIC_TREND } from '../data/traffic';
 import { DEFECTS_OVER_TIME_TREND } from '../data/analytics';
 import { SEVERITY_BADGES } from '../data/events';
 
-// Fix Leaflet default marker icon bug in React Leaflet
 const createCustomIcon = (color, label = '') => {
   return L.divIcon({
     className: 'custom-leaflet-marker',
     html: `
-      <div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+      <div style="background-color: ${color}; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
         ${label}
       </div>
     `,
@@ -52,8 +41,6 @@ const createCustomIcon = (color, label = '') => {
     iconAnchor: [12, 12]
   });
 };
-
-const CATEGORY_COLORS = ['#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#10b981'];
 
 export const Overview = () => {
   const { 
@@ -63,156 +50,138 @@ export const Overview = () => {
     events, 
     defects, 
     incidents, 
-    setSelectedEvent,
-    liveTickerFeed
+    setSelectedEvent
   } = useApp();
 
   const activeBuses = buses.filter(b => b.status === 'ONLINE').length;
   const criticalIncidentsCount = incidents.filter(i => i.severity === 'CRITICAL').length;
+  const pendingDefects = defects.filter(d => d.status !== 'Resolved').length;
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* 1. SYSTEMIC PIPELINE VISUAL BANNER (Requested by User) */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg overflow-hidden relative">
-        <div className="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
-          <div className="flex items-center space-x-2">
-            <Sparkles className="w-4 h-4 text-blue-400" />
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
-              Platform Sensing & Action Pipeline
-            </span>
+    <div className="space-y-6 pb-12 max-w-7xl mx-auto">
+      {/* 1. WELCOME & OPERATIONS BANNER */}
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 text-xs font-semibold text-blue-600 mb-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            System Live & Sensing • {cityConfig.cityName}
           </div>
-          <span className="text-[10px] text-slate-400 italic">
-            BEL Edge AI Architecture • Mobile Transport Fleet
-          </span>
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+            Municipal Command & Mobility Operations
+          </h2>
+          <p className="text-xs text-slate-500 mt-1 max-w-2xl">
+            Real-time urban surveillance and road quality telemetry powered by {buses.length} public transport mobile sensing units.
+          </p>
         </div>
 
-        {/* Pipeline Step Flow */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
-          {[
-            { step: '01', title: 'CITY BUSES', subtitle: '50 Transport Units', color: 'bg-blue-600' },
-            { step: '02', title: 'EDGE AI', subtitle: 'Onboard Processing', color: 'bg-purple-600' },
-            { step: '03', title: 'IMPORTANT EVENTS', subtitle: 'Bandwidth Optimized', color: 'bg-amber-600' },
-            { step: '04', title: 'CENTRAL PLATFORM', subtitle: 'Aggregated Storage', color: 'bg-indigo-600' },
-            { step: '05', title: 'GIS & ANALYTICS', subtitle: 'Heatmaps & Spatial', color: 'bg-cyan-600' },
-            { step: '06', title: 'AUTHORITY ACTION', subtitle: 'Municipal Dispatch', color: 'bg-emerald-600' }
-          ].map((item, idx) => (
-            <div 
-              key={item.step}
-              className="pipeline-step bg-slate-950/80 border border-slate-800 rounded-lg p-2.5 relative group hover:border-blue-500/50 transition"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className={`text-[9px] font-bold text-white px-1.5 py-0.5 rounded ${item.color}`}>
-                  STEP {item.step}
-                </span>
-                {idx < 5 && (
-                  <ChevronRight className="w-3 h-3 text-slate-600 group-hover:text-blue-400 hidden lg:block" />
-                )}
-              </div>
-              <div className="text-xs font-black text-slate-100">{item.title}</div>
-              <div className="text-[10px] text-slate-400">{item.subtitle}</div>
+        <div className="flex items-center gap-2.5">
+          <Link
+            to="/prediction"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white px-4 py-2.5 rounded-xl text-xs font-semibold shadow-xs transition"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Upload Media & Test AI</span>
+          </Link>
+          <Link
+            to="/gis-map"
+            className="flex items-center gap-1.5 bg-slate-50 hover:bg-slate-100 text-slate-700 px-3.5 py-2.5 rounded-xl text-xs font-semibold border border-slate-200/80 transition"
+          >
+            <span>Open Map</span>
+            <ArrowUpRight className="w-3.5 h-3.5 text-slate-400" />
+          </Link>
+        </div>
+      </div>
+
+      {/* 2. FOUR PRIMARY OPERATIONAL METRICS */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Metric 1 */}
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition">
+          <div className="flex items-center justify-between text-slate-400 mb-3">
+            <span className="text-xs font-semibold text-slate-500">Active Sensing Fleet</span>
+            <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+              <Bus className="w-4 h-4" />
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* 2. TOP 6 COMMAND KPI CARDS */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {/* KPI 1 */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-md hover:border-slate-700 transition">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">ACTIVE BUSES</span>
-            <Bus className="w-4 h-4 text-blue-400" />
           </div>
-          <div className="text-2xl font-black text-white">
-            42 <span className="text-sm font-normal text-slate-400">/ 50</span>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-slate-900">{activeBuses}</span>
+            <span className="text-xs text-slate-400 font-medium">/ {buses.length} online</span>
           </div>
-          <div className="flex items-center text-[10px] text-emerald-400 font-semibold gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-            84% Fleet Operational
-          </div>
+          {/* <div className="mt-2 text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+            <CheckCircle2 className="w-3 h-3" />
+            <span>84% fleet telemetry coverage</span>
+          </div> */}
         </div>
 
-        {/* KPI 2 */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-md hover:border-slate-700 transition">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">EVENTS DETECTED</span>
-            <Zap className="w-4 h-4 text-amber-400" />
+        {/* Metric 2 */}
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition">
+          <div className="flex items-center justify-between text-slate-400 mb-3">
+            <span className="text-xs font-semibold text-slate-500">Road Defects Detected</span>
+            <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-black text-white">1,284</div>
-          <div className="text-[10px] text-amber-400 font-semibold">
-            +14% vs yesterday
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-slate-900">{defects.length}</span>
+            <span className="text-xs text-amber-600 font-medium">{pendingDefects} pending repair</span>
+          </div>
+          <div className="mt-2 text-[11px] text-slate-500">
+            {/* 82 Potholes • 31 Waterlogging */}
           </div>
         </div>
 
-        {/* KPI 3 */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-md hover:border-slate-700 transition">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">ROAD DEFECTS</span>
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
+        {/* Metric 3 */}
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition">
+          <div className="flex items-center justify-between text-slate-400 mb-3">
+            <span className="text-xs font-semibold text-slate-500">Traffic Congestion Index</span>
+            <div className="p-2 rounded-xl bg-cyan-50 text-cyan-600">
+              <Car className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-black text-white">167</div>
-          <div className="text-[10px] text-slate-400">
-            82 Potholes • 31 Waterlogging
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-slate-900">68<span className="text-sm font-normal text-slate-400">/100</span></span>
+            <span className="text-xs text-cyan-700 font-medium">Moderate Peak</span>
           </div>
-        </div>
-
-        {/* KPI 4 */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-md hover:border-slate-700 transition">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">TRAFFIC ALERTS</span>
-            <Car className="w-4 h-4 text-cyan-400" />
-          </div>
-          <div className="text-2xl font-black text-white">28</div>
-          <div className="text-[10px] text-cyan-400 font-semibold">
-            18 Congested Zones
+          <div className="mt-2 text-[11px] text-slate-500">
+            {/* 18 active bottleneck zones */}
           </div>
         </div>
 
-        {/* KPI 5 */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-md hover:border-slate-700 transition">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">CRITICAL INCIDENTS</span>
-            <Siren className="w-4 h-4 text-rose-500" />
+        {/* Metric 4 */}
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition">
+          <div className="flex items-center justify-between text-slate-400 mb-3">
+            <span className="text-xs font-semibold text-slate-500">Safety & Critical Events</span>
+            <div className="p-2 rounded-xl bg-rose-50 text-rose-600">
+              <ShieldAlert className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-2xl font-black text-rose-400">{criticalIncidentsCount}</div>
-          <div className="text-[10px] text-rose-400 font-semibold">
-            3 Hit & Run Tracked
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-bold text-rose-600">{criticalIncidentsCount}</span>
+            <span className="text-xs text-rose-600 font-medium">High priority</span>
           </div>
-        </div>
-
-        {/* KPI 6 */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-2 shadow-md hover:border-slate-700 transition">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[11px] font-bold uppercase tracking-wider">INFRASTRUCTURE</span>
-            <ShieldAlert className="w-4 h-4 text-purple-400" />
-          </div>
-          <div className="text-2xl font-black text-white">94</div>
-          <div className="text-[10px] text-slate-400">
-            14 Missing Dividers
+          <div className="mt-2 text-[11px] text-slate-500">
+            {/* 3 hit-and-run vehicles tracked */}
           </div>
         </div>
       </div>
 
-      {/* 3. MAIN COMMAND SPLIT VIEW: MAP (~65%) vs CRITICAL ALERTS (~35%) */}
+      {/* 3. SPLIT SECTION: LIVE MAP PREVIEW vs REAL-TIME INCIDENT FEED */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* LEFT ~65%: LIVE CITY GIS MAP PREVIEW */}
-        <div className="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex flex-col space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center space-x-2">
-              <Layers className="w-4 h-4 text-blue-400" />
-              <span className="text-sm font-bold text-white">LIVE CITY GIS SENSING MAP</span>
-              <span className="text-xs text-slate-400">({cityConfig.cityName})</span>
+        {/* Map ~65% */}
+        <div className="lg:col-span-8 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex flex-col space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Live Spatial Operations</h3>
+              <p className="text-xs text-slate-500">Real-time bus sensors and detected road issues</p>
             </div>
             <Link 
               to="/gis-map" 
-              className="text-xs text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1 hover:underline"
+              className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1"
             >
-              Open Full GIS Map <ArrowRight className="w-3.5 h-3.5" />
+              Interactive Map <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          {/* Leaflet Map Preview Container */}
-          <div className="w-full h-80 rounded-lg overflow-hidden border border-slate-800 relative">
+          <div className="w-full h-88 rounded-xl overflow-hidden border border-slate-200/80 relative">
             <MapContainer
               center={cityConfig.center}
               zoom={11}
@@ -234,8 +203,8 @@ export const Overview = () => {
                   <Popup>
                     <div className="text-xs p-1">
                       <div className="font-bold text-blue-600">{bus.id}</div>
-                      <div>Route: {bus.routeId}</div>
-                      <div>Speed: {bus.speed} km/h</div>
+                      <div className="text-slate-600">Route: {bus.routeId}</div>
+                      <div className="text-slate-600">Speed: {bus.speed} km/h</div>
                     </div>
                   </Popup>
                 </Marker>
@@ -250,217 +219,179 @@ export const Overview = () => {
                 >
                   <Popup>
                     <div className="text-xs p-1">
-                      <div className="font-bold text-red-600">{def.type}</div>
-                      <div>Location: {def.location}</div>
-                      <div>Confidence: {(def.confidence * 100).toFixed(1)}%</div>
+                      <div className="font-bold text-rose-600">{def.type}</div>
+                      <div className="text-slate-600">Location: {def.location}</div>
+                      <div className="text-slate-600">Confidence: {(def.confidence * 100).toFixed(1)}%</div>
                     </div>
                   </Popup>
                 </Marker>
               ))}
             </MapContainer>
 
-            {/* Map Legend Overlay */}
-            <div className="absolute bottom-3 left-3 bg-slate-900/90 backdrop-blur-md border border-slate-700/70 rounded-md p-2 text-[10px] text-slate-300 z-[1000] flex items-center space-x-3">
-              <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Active Bus
+            {/* Map Legend */}
+            <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-xs border border-slate-200/80 rounded-xl px-3 py-2 text-[11px] text-slate-700 z-[1000] flex items-center space-x-3 shadow-md">
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-600"></span> Bus Unit
               </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500"></span> Pothole / Defect
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span> Waterlogging
+              <span className="flex items-center gap-1.5 font-medium">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-600"></span> Defect Alert
               </span>
             </div>
           </div>
         </div>
 
-        {/* RIGHT ~35%: CRITICAL ALERTS & EDGE BANDWIDTH WIDGET */}
-        <div className="lg:col-span-4 space-y-4">
-          {/* Critical Alerts Feed */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex flex-col h-[280px]">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
-              <div className="flex items-center space-x-2">
-                <Siren className="w-4 h-4 text-rose-500" />
-                <span className="text-sm font-bold text-white">CRITICAL ALERTS FEED</span>
-              </div>
-              <span className="text-[10px] text-rose-400 bg-rose-950 px-2 py-0.5 rounded border border-rose-800 font-bold">
-                LIVE
-              </span>
+        {/* Real-time Alerts Feed ~35% */}
+        <div className="lg:col-span-4 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex flex-col h-[420px]">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Live Incident Feed</h3>
+              <p className="text-xs text-slate-500">Recent automated detections</p>
             </div>
-
-            <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 divide-y divide-slate-800/50">
-              {events.slice(0, 4).map(evt => (
-                <div 
-                  key={evt.id} 
-                  onClick={() => setSelectedEvent(evt)}
-                  className="pt-2 hover:bg-slate-800/40 p-2 rounded cursor-pointer transition flex items-start justify-between"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center space-x-2">
-                      <span className={SEVERITY_BADGES[evt.severity] || "bg-slate-700 text-white text-[10px] px-1.5 py-0.5 rounded"}>
-                        {evt.severity}
-                      </span>
-                      <span className="text-xs font-bold text-slate-100">{evt.type}</span>
-                    </div>
-                    <div className="text-[11px] text-slate-400">
-                      Bus <span className="text-blue-400 font-semibold">{evt.busId}</span> • {evt.location}
-                    </div>
-                  </div>
-                  <div className="text-[10px] text-slate-500 whitespace-nowrap">
-                    {evt.timeAgo}
-                  </div>
-                </div>
-              ))}
-            </div>
+            <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md font-bold border border-emerald-100">
+              Streaming
+            </span>
           </div>
 
-          {/* Edge AI Bandwidth Panel */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <div className="flex items-center space-x-2">
-                <Cpu className="w-4 h-4 text-emerald-400" />
-                <span className="text-xs font-bold text-white uppercase tracking-wider">
-                  Edge AI Processing Telemetry
-                </span>
+          <div className="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-100">
+            {events.slice(0, 5).map(evt => (
+              <div 
+                key={evt.id} 
+                onClick={() => setSelectedEvent(evt)}
+                className="pt-2 hover:bg-slate-50 p-2 rounded-xl cursor-pointer transition flex items-start justify-between"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className={SEVERITY_BADGES[evt.severity] || "bg-slate-100 text-slate-700 text-[10px] px-1.5 py-0.5 rounded"}>
+                      {evt.severity}
+                    </span>
+                    <span className="text-xs font-bold text-slate-900">{evt.type}</span>
+                  </div>
+                  <div className="text-[11px] text-slate-600">
+                    Bus <span className="font-semibold text-slate-800">{evt.busId}</span> • {evt.location}
+                  </div>
+                </div>
+                <div className="text-[10px] text-slate-400 whitespace-nowrap">
+                  {evt.timeAgo}
+                </div>
               </div>
-              <span className="text-[10px] text-emerald-400 font-mono">ACTIVE</span>
-            </div>
+            ))}
+          </div>
 
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="bg-slate-950 p-2 rounded border border-slate-800">
-                <div className="text-[10px] text-slate-400">Camera Streams</div>
-                <div className="font-bold text-slate-200">5 Per Bus (250 Total)</div>
-              </div>
-              <div className="bg-slate-950 p-2 rounded border border-slate-800">
-                <div className="text-[10px] text-slate-400">Raw Video Uploaded</div>
-                <div className="font-bold text-rose-400">0 GB (Blocked)</div>
-              </div>
-              <div className="bg-slate-950 p-2 rounded border border-slate-800">
-                <div className="text-[10px] text-slate-400">Events Transmitted</div>
-                <div className="font-bold text-amber-400">1,284 Metadata Pkts</div>
-              </div>
-              <div className="bg-slate-950 p-2 rounded border border-slate-800">
-                <div className="text-[10px] text-slate-400">Bandwidth Saved</div>
-                <div className="font-bold text-emerald-400">~82.4%</div>
-              </div>
-            </div>
-            <div className="text-[9px] text-slate-500 text-right italic">
-              * Estimated / Demo Metric
-            </div>
+          <div className="pt-3 border-t border-slate-100">
+            <Link 
+              to="/issues"
+              className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center justify-center gap-1 w-full text-center"
+            >
+              View all detected issues ({events.length}) →
+            </Link>
           </div>
         </div>
       </div>
 
-      {/* 4. CHARTS ROW: TRAFFIC DENSITY TREND & ROAD DEFECT TREND */}
+      {/* 4. CHARTS: TRAFFIC VOLUME & ROAD DEFECT TRENDS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Chart 1: Traffic Density Over Time */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <span className="text-xs font-bold text-white uppercase tracking-wider">
-              Citywide Traffic Density Trend (24h)
-            </span>
-            <span className="text-[10px] text-cyan-400 font-semibold">Peak Index: 92 at 17:00</span>
+        {/* Chart 1 */}
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Traffic Density & Fleet Speed</h3>
+              <p className="text-xs text-slate-500">24-hour citywide congestion trend</p>
+            </div>
+            <span className="text-xs text-slate-600 font-medium">Avg Speed: 32 km/h</span>
           </div>
 
-          <div className="h-64 w-full">
+          <div className="h-60 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={HOURLY_TRAFFIC_TREND}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} />
-                <YAxis stroke="#94a3b8" fontSize={10} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis dataKey="time" stroke="#94a3b8" fontSize={10} tickLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px', fontSize: '12px' }}
+                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', fontSize: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
                 />
-                <Line type="monotone" dataKey="densityIndex" stroke="#38bdf8" strokeWidth={2} name="Traffic Index" />
-                <Line type="monotone" dataKey="speed" stroke="#10b981" strokeWidth={2} name="Fleet Speed (km/h)" />
+                <Line type="monotone" dataKey="densityIndex" stroke="#2563eb" strokeWidth={2.5} name="Traffic Index" dot={false} />
+                <Line type="monotone" dataKey="speed" stroke="#10b981" strokeWidth={2} name="Fleet Speed (km/h)" dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Chart 2: Defects Detected Per Day */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <span className="text-xs font-bold text-white uppercase tracking-wider">
-              Road Defects Detected Per Day (Weekly)
-            </span>
-            <span className="text-[10px] text-amber-400 font-semibold">Total: 167 Issues</span>
+        {/* Chart 2 */}
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Road Defects Detected by Category</h3>
+              <p className="text-xs text-slate-500">Weekly accumulation trend</p>
+            </div>
+            <span className="text-xs text-slate-600 font-medium">Total: 167 Issues</span>
           </div>
 
-          <div className="h-64 w-full">
+          <div className="h-60 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={DEFECTS_OVER_TIME_TREND}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="day" stroke="#94a3b8" fontSize={10} />
-                <YAxis stroke="#94a3b8" fontSize={10} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                <XAxis dataKey="day" stroke="#94a3b8" fontSize={10} tickLine={false} />
+                <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '6px', fontSize: '12px' }}
+                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '12px', fontSize: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
                 />
-                <Bar dataKey="potholes" fill="#f59e0b" name="Potholes" />
-                <Bar dataKey="waterlogging" fill="#06b6d4" name="Waterlogging" />
-                <Bar dataKey="infrastructure" fill="#a855f7" name="Infrastructure" />
+                <Bar dataKey="potholes" fill="#f59e0b" name="Potholes" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="waterlogging" fill="#06b6d4" name="Waterlogging" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="infrastructure" fill="#8b5cf6" name="Infrastructure" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
       </div>
 
-      {/* 5. RECENT AI EVENTS TABLE */}
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <div className="flex items-center space-x-2">
-            <Eye className="w-4 h-4 text-blue-400" />
-            <span className="text-sm font-bold text-white">RECENT AI-DETECTED URBAN EVENTS</span>
+      {/* 5. RECENT DETECTIONS LOG */}
+      <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs space-y-3">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Recent AI-Detected Events</h3>
+            <p className="text-xs text-slate-500">Automated mobile computer vision detection logs</p>
           </div>
-          <span className="text-xs text-slate-400">Showing latest Edge AI detection logs</span>
+          <Link to="/issues" className="text-xs text-blue-600 hover:text-blue-700 font-semibold">
+            Manage All Issues →
+          </Link>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+          <table className="w-full text-left text-xs text-slate-700">
+            <thead className="bg-slate-50 text-slate-500 uppercase text-[10px] tracking-wider border-b border-slate-200/80">
               <tr>
-                <th className="p-3">Event ID</th>
-                <th className="p-3">Type</th>
-                <th className="p-3">Sensing Bus</th>
-                <th className="p-3">Location</th>
-                <th className="p-3">Confidence</th>
-                <th className="p-3">Severity</th>
-                <th className="p-3">Timestamp</th>
-                <th className="p-3">Status</th>
-                <th className="p-3 text-right">Action</th>
+                <th className="py-2.5 px-3">Event ID</th>
+                <th className="py-2.5 px-3">Issue Type</th>
+                <th className="py-2.5 px-3">Sensing Bus</th>
+                <th className="py-2.5 px-3">Location</th>
+                <th className="py-2.5 px-3">Severity</th>
+                <th className="py-2.5 px-3">Confidence</th>
+                <th className="py-2.5 px-3">Time</th>
+                <th className="py-2.5 px-3 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
-              {events.map((evt) => (
+            <tbody className="divide-y divide-slate-100">
+              {events.slice(0, 6).map((evt) => (
                 <tr 
                   key={evt.id}
-                  className="hover:bg-slate-800/40 transition cursor-pointer"
+                  className="hover:bg-slate-50/80 transition cursor-pointer"
                   onClick={() => setSelectedEvent(evt)}
                 >
-                  <td className="p-3 font-mono font-bold text-blue-400">{evt.id}</td>
-                  <td className="p-3 font-semibold text-slate-100">{evt.type}</td>
-                  <td className="p-3">
-                    <span className="bg-slate-800 border border-slate-700 px-2 py-0.5 rounded text-blue-300 font-mono text-[11px]">
-                      {evt.busId}
-                    </span>
-                  </td>
-                  <td className="p-3 text-slate-300">{evt.location}</td>
-                  <td className="p-3 font-mono font-semibold text-emerald-400">
-                    {(evt.confidence * 100).toFixed(1)}%
-                  </td>
-                  <td className="p-3">
-                    <span className={SEVERITY_BADGES[evt.severity] || "bg-slate-700 text-white text-[10px] px-2 py-0.5 rounded"}>
+                  <td className="py-3 px-3 font-mono font-bold text-blue-600">{evt.id}</td>
+                  <td className="py-3 px-3 font-semibold text-slate-900">{evt.type}</td>
+                  <td className="py-3 px-3 font-mono text-slate-600">{evt.busId}</td>
+                  <td className="py-3 px-3 text-slate-700">{evt.location}</td>
+                  <td className="py-3 px-3">
+                    <span className={SEVERITY_BADGES[evt.severity] || "bg-slate-100 text-slate-700 text-[10px] px-2 py-0.5 rounded"}>
                       {evt.severity}
                     </span>
                   </td>
-                  <td className="p-3 text-slate-400 font-mono text-[11px]">{evt.timestamp}</td>
-                  <td className="p-3">
-                    <span className="text-[11px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
-                      {evt.status}
-                    </span>
+                  <td className="py-3 px-3 font-mono font-semibold text-emerald-600">
+                    {(evt.confidence * 100).toFixed(1)}%
                   </td>
-                  <td className="p-3 text-right">
-                    <button className="text-blue-400 hover:text-blue-300 font-semibold text-[11px]">
+                  <td className="py-3 px-3 text-slate-400 font-mono">{evt.timeAgo || evt.timestamp}</td>
+                  <td className="py-3 px-3 text-right">
+                    <button className="text-blue-600 hover:text-blue-800 font-semibold">
                       Inspect →
                     </button>
                   </td>

@@ -1,19 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MOCK_BUSES } from '../data/buses';
-import { MOCK_EVENTS } from '../data/events';
-import { MOCK_DEFECTS } from '../data/defects';
-import { MOCK_INFRASTRUCTURE } from '../data/infrastructure';
-import { MOCK_INCIDENTS } from '../data/incidents';
 import { CITY_CONFIG } from '../data/config';
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const [buses, setBuses] = useState(MOCK_BUSES);
-  const [events, setEvents] = useState(MOCK_EVENTS);
-  const [defects, setDefects] = useState(MOCK_DEFECTS);
-  const [infrastructure, setInfrastructure] = useState(MOCK_INFRASTRUCTURE);
-  const [incidents, setIncidents] = useState(MOCK_INCIDENTS);
+  const [events, setEvents] = useState([]);
+  const [defects, setDefects] = useState([]);
+  const [infrastructure, setInfrastructure] = useState([]);
+  const [incidents, setIncidents] = useState([]);
   
   const [mapConfig, setMapConfig] = useState({ basemapUrl: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" });
 
@@ -38,34 +34,22 @@ export const AppProvider = ({ children }) => {
         const res = await fetch(`${API_BASE_URL}/api/predictions`);
         const json = await res.json();
         if (json.success && json.data) {
-          const apiEvents = json.data.map((item, idx) => ({
-            id: item._id || `API_EVT_${idx}`,
-            type: "POTHOLE", 
-            location: "Live Detection Hotspot",
-            latitude: item.lang || 28.6139,
-            longitude: item.long || 77.2090,
-            severity: item.no_of_predicted > 0 ? "CRITICAL" : "LOW",
-            timestamp: item.created_at || new Date().toISOString(),
-            confidence: 0.92,
-            busId: "USER_UPLOAD",
-            description: `User-uploaded media prediction. Detected objects: ${item.no_of_predicted}`,
-            evidenceImage: "https://images.unsplash.com/photo-1515162816999-a0c47dc192f7?auto=format&fit=crop&q=80&w=400"
-          }));
-
-          const apiDefects = json.data.map((item, idx) => ({
-            id: item._id || `API_DEF_${idx}`,
-            type: "Prediction",
-            location: "Mapped Location",
-            latitude: item.lang || 28.6139,
-            longitude: item.long || 77.2090,
-            severity: item.no_of_predicted > 0 ? "HIGH" : "LOW",
-            detectedAt: item.created_at || new Date().toISOString(),
-            status: "Detected",
-            description: `Predicted items: ${item.no_of_predicted}`
-          }));
+          const apiEvents = json.data;
           
-          setEvents([...apiEvents, ...MOCK_EVENTS]);
-          setDefects([...apiDefects, ...MOCK_DEFECTS]);
+          if (apiEvents) {
+            // Map legacy records to the new schema to prevent Leaflet crash
+            const mappedEvents = apiEvents.map((item, idx) => ({
+              ...item,
+              id: item.id || item._id || `API_EVT_${idx}`,
+              latitude: item.latitude || item.lang || 28.6139,
+              longitude: item.longitude || item.long || 77.2090,
+              type: item.type || "POTHOLE",
+              severity: item.severity || "LOW"
+            }));
+            
+            setEvents(mappedEvents);
+            setDefects(mappedEvents.filter(e => e.category === 'ROAD_DEFECT'));
+          }
         }
       } catch (err) {
         console.error("Failed to fetch predictions", err);
@@ -97,44 +81,18 @@ export const AppProvider = ({ children }) => {
     setTimeout(() => setToast(null), 4000);
   };
 
-  // Simulated live event ticker feed
-  const [liveTickerFeed, setLiveTickerFeed] = useState([
-    { id: 'TICK_01', time: '10:32:14', bus: 'BUS_17', type: 'Pothole', location: 'MG Road' },
-    { id: 'TICK_02', time: '10:31:52', bus: 'BUS_12', type: 'Waterlogging', location: 'Sector 14' },
-    { id: 'TICK_03', time: '10:30:41', bus: 'BUS_31', type: 'Traffic Jam', location: 'Dhaula Kuan' },
-    { id: 'TICK_04', time: '10:29:17', bus: 'BUS_07', type: 'Missing Divider', location: 'NH-48' }
-  ]);
-
-  // Simulate new incoming event telemetry periodically
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const randomBus = buses[Math.floor(Math.random() * buses.length)];
-      const eventTypes = [
-        { type: 'Pothole detected', category: 'ROAD_DEFECT', severity: 'HIGH' },
-        { type: 'Traffic bottleneck detected', category: 'TRAFFIC', severity: 'MEDIUM' },
-        { type: 'Waterlogging detected', category: 'ROAD_DEFECT', severity: 'HIGH' },
-        { type: 'Missing signboard detected', category: 'INFRASTRUCTURE', severity: 'LOW' }
-      ];
-      const selected = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-      const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-      const newTickerItem = {
-        id: `TICK_${Date.now()}`,
-        time: nowStr,
-        bus: randomBus.id,
-        type: selected.type,
-        location: randomBus.routeName.split('→')[0] || 'City Corridor'
-      };
-
-      setLiveTickerFeed(prev => [newTickerItem, ...prev.slice(0, 5)]);
-    }, 12000); // New event every 12 seconds
-
-    return () => clearInterval(interval);
-  }, [buses]);
+  // Derive live ticker feed from real events
+  const liveTickerFeed = events.slice(0, 5).map(e => ({
+    id: e.id,
+    time: new Date(e.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    bus: e.busId || 'SYSTEM',
+    type: e.type,
+    location: e.location || 'Mapped Location'
+  }));
 
   // Interactive Maintenance Workflow State Machine:
   // Detected -> Assigned -> In Progress -> Resolved
-  const updateDefectStatus = (defectId, newStatus, assignedCrew = '') => {
+  const updateDefectStatus = async (defectId, newStatus, assignedCrew = '') => {
     setDefects(prev => prev.map(d => {
       if (d.id === defectId) {
         const updated = {
@@ -149,7 +107,23 @@ export const AppProvider = ({ children }) => {
       }
       return d;
     }));
+
     showToast(`Defect ${defectId} status updated to '${newStatus}'`, 'success');
+
+    // Asynchronously synchronize with backend work orders API
+    try {
+      const woId = `WO-2026-${defectId.replace(/[^a-zA-Z0-9]/g, '')}`;
+      await fetch(`${API_BASE_URL}/api/work-orders/${woId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: newStatus.toUpperCase().replace(' ', '_'),
+          assigned_crew: assignedCrew || undefined
+        })
+      });
+    } catch (err) {
+      console.warn("Backend sync notice:", err);
+    }
   };
 
   // Incident Actions

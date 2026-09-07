@@ -3,17 +3,18 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/layout/Sidebar';
 import { Header } from '../components/layout/Header';
 import { useApp } from '../context/AppContext';
-import { CheckCircle2, AlertTriangle, Info, X } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Info } from 'lucide-react';
 
 const PAGE_TITLES = {
-  '/': 'Overview — Command Center Dashboard',
+  '/': 'City Overview & Live Operations',
+  '/prediction': 'AI Media Detection Studio',
   '/gis-map': 'Live GIS Map & Spatial Intelligence',
-  '/road-conditions': 'Road Conditions & Defect Maintenance',
-  '/traffic-intelligence': 'Traffic Intelligence & Flow Analytics',
-  '/infrastructure': 'Infrastructure Deficiency Monitoring',
-  '/safety-incidents': 'Public Safety & Hit-and-Run Incident Tracker',
-  '/bus-fleet': 'Bus Fleet Mobile Sensing Units',
-  '/analytics-reports': 'Centralized Analytics & Municipal Reports'
+  '/issues': 'Issue Tracking & Maintenance Orders',
+  '/road-conditions': 'Issue Tracking & Maintenance Orders',
+  '/infrastructure': 'Issue Tracking & Maintenance Orders',
+  '/safety-incidents': 'Issue Tracking & Maintenance Orders',
+  '/bus-fleet': 'Fleet Telemetry & Mobile Sensors',
+  '/analytics-reports': 'Mobility Analytics & Municipal Reports'
 };
 
 export const MainLayout = () => {
@@ -22,27 +23,27 @@ export const MainLayout = () => {
   const pageTitle = PAGE_TITLES[location.pathname] || 'Urban Intelligence Platform';
 
   return (
-    <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
-      {/* Persistent Left Sidebar (8 Core Modules) */}
+    <div className="flex h-screen bg-slate-50/70 text-slate-900 overflow-hidden font-sans">
+      {/* Persistent Left Sidebar */}
       <Sidebar />
 
-      {/* Main Command Workspace */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-900">
-        {/* Top Command Header */}
+      {/* Main Workspace */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-slate-50/60">
+        {/* Top Header */}
         <Header pageTitle={pageTitle} />
 
-        {/* Dynamic Page Content View */}
-        <main className="flex-1 overflow-y-auto p-6 bg-slate-950/60">
+        {/* Dynamic Page Content */}
+        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
           <Outlet />
         </main>
 
-        {/* Global Toast Notification Popup */}
+        {/* Toast Notification Popup */}
         {toast && (
-          <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-slate-900 border border-slate-700 text-slate-100 text-xs rounded-lg shadow-2xl animate-bounce">
-            {toast.type === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
-            {toast.type === 'warning' && <AlertTriangle className="w-5 h-5 text-amber-400" />}
-            {toast.type === 'info' && <Info className="w-5 h-5 text-blue-400" />}
-            <span className="font-semibold">{toast.message}</span>
+          <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-white border border-slate-200 text-slate-900 text-xs rounded-xl shadow-xl animate-in slide-in-from-bottom-5">
+            {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
+            {toast.type === 'warning' && <AlertTriangle className="w-4 h-4 text-amber-600" />}
+            {toast.type === 'info' && <Info className="w-4 h-4 text-blue-600" />}
+            <span className="font-semibold text-slate-800">{toast.message}</span>
           </div>
         )}
       </div>
